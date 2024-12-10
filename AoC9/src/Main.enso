@@ -1,0 +1,90 @@
+from Standard.Base import all
+from Standard.Table import all
+from Standard.Database import all
+from Standard.AWS import all
+from Standard.Google_Api import all
+from Standard.Snowflake import all
+import Standard.Examples
+import Standard.Visualization
+import local.NewProject7
+
+swap a:Dictionary i j =
+    ai = a.get i
+    aj = a.get j
+    a.insert i aj . insert j ai
+
+compact disk:Vector =
+    go acc left_pos right_pos =
+        if left_pos >= right_pos then acc else
+            if acc.get right_pos == '.' then @Tail_Call go acc left_pos right_pos-1 else
+                if acc.get left_pos != '.' then @Tail_Call go acc left_pos+1 right_pos else
+                    Runtime.assert (acc.get left_pos == '.')
+                    Runtime.assert (acc.get right_pos != '.') 
+                    acc_2 = swap acc left_pos right_pos
+                    @Tail_Call go acc_2 left_pos+1 right_pos-1
+            
+    initial_acc = Dictionary.from_vector (disk.map_with_index i-> x-> [i, x])
+    new_acc = go initial_acc 0 disk.length-1
+    0.up_to disk.length . map new_acc.get
+
+## Returns the new free_spots (after modification) and the new offest for the searched block.
+relocate free_spots size offset =
+    available_spots = free_spots.filter spot->
+        (spot.get 'size' >= size) && (spot.get 'offset' < offset)
+    if available_spots.is_empty then [free_spots, offset] else
+        best_spot = available_spots.sort on=(s-> s.get 'offset') . first
+        spots_without_best = free_spots.filter (..Not_Equal best_spot)
+        new_file_offset = best_spot.get 'offset'
+        remaining_spot_space = best_spot.get 'size' - size
+        if remaining_spot_space == 0 then [spots_without_best, new_file_offset] else
+            new_spot = JS_Object.from_pairs [["size", remaining_spot_space], ["offset", new_file_offset + size]]
+            [spots_without_best.insert item=new_spot, new_file_offset]
+
+compact2 free_spots rows =
+    Vector.build builder-> 0.up_to rows.length . fold free_spots acc-> ix->
+        row = rows.at ix
+        r = relocate acc (row.get 'size') (row.get 'offset')
+        builder.append r.second
+        r.first
+
+main =
+    text1 = "2333133121414131402"
+    text2 = "12345"
+    node5 = Data.read 'X:\\NBO\\aoc24\\9-input.txt'
+    text3 = node5.trim
+    vector1 = text1.characters
+    node1 = vector1.map Integer.parse
+    node2 = node1.map_with_index ix-> c-> [(if ix % 2 == 0 then ix.div 2 else '.'), c]
+    node3 = node2.flat_map p-> Vector.fill p.second p.first
+    node4 = compact node3
+    vector2 = node4.filter (..Not_Equal ".")
+    vector3 = vector2.map_with_index ix-> id-> ix*id
+    any1 = vector3.compute ..Sum
+    integer1 = text3.length
+    any2 = node2.to_table
+    any3 = any2.rename_columns ["id", "size"]
+    any4 = any3.replace (Dictionary.from_vector [[".", Nothing]]) ['id']
+    table1 = any4.running ..Sum 'size'
+    node6 = table1.set (..Simple_Expr (..Name 'Running Sum of size') (..Math (..Subtract (..Name 'size')))) "offset"
+    any5 = node6.remove_columns ['Running Sum of size']
+    any10 = any5.cast ['offset'] ..Integer
+    any6 = any10.filter 'id' ..Not_Nothing
+    any9 = any6.sort [(..Name 'id' ..Descending)]
+    any7 = any10.filter 'id' ..Is_Nothing
+    any8 = any7.remove_columns ['id']
+    text4 = any8.to_js_object
+    vector4 = any9.rows
+    any11 = compact2 text4 vector4
+    any12 = any9.set any11 "New Offset"
+    any13 = any12.at 'size'
+    any14 = any12.at 'New Offset'
+    any15 = any14.zip any13 offset-> size-> offset.up_to (offset+size) . to_vector . compute ..Sum
+    any16 = any12.set any15 "Coeff"
+    any17 = any16.set (..Simple_Expr (..Name 'id') (..Math (..Multiply (..Name 'Coeff')))) "check"
+    any18 = any17.aggregate columns=[..Sum 'check']
+
+
+
+#### METADATA ####
+[[{"index":{"value":375},"size":{"value":4}},"d4e886e3-80a8-4534-afa6-fe9cce880877"],[{"index":{"value":923},"size":{"value":59}},"365ff6e6-749b-4ab1-bb34-2e3b44a0917a"],[{"index":{"value":997},"size":{"value":30}},"49a26a62-31f6-40b4-9a3a-deed6eac1f18"],[{"index":{"value":1032},"size":{"value":37}},"01c90b19-8e2a-4c5b-8934-e41ca736593e"],[{"index":{"value":2154},"size":{"value":21}},"df541ae5-3899-4927-949d-6f5e02f418f3"],[{"index":{"value":2188},"size":{"value":7}},"66348e67-d18e-4f8d-8ea2-f939dfc57396"],[{"index":{"value":2208},"size":{"value":39}},"090f1037-913c-44a1-9c02-8b97c3dd516f"],[{"index":{"value":2260},"size":{"value":10}},"a3c2a53c-d734-4542-aee6-ae683909a548"],[{"index":{"value":2285},"size":{"value":16}},"b6d7a44e-7158-4704-9189-541e58674566"],[{"index":{"value":2314},"size":{"value":25}},"04d6bb16-dfad-4696-9263-20fb0af6e893"],[{"index":{"value":2352},"size":{"value":74}},"88c35128-f47c-433c-8271-eac142998a43"],[{"index":{"value":2439},"size":{"value":47}},"239f661a-26f4-4b19-9f58-d116fe8b792c"],[{"index":{"value":2499},"size":{"value":13}},"91293fae-616b-4aaa-b53e-b696d80b5994"],[{"index":{"value":2527},"size":{"value":12}},"91e459b2-ac3a-446a-88cf-592596790904"],[{"index":{"value":2527},"size":{"value":30}},"d5274b94-522b-4efd-bf0e-967747d82607"],[{"index":{"value":2572},"size":{"value":38}},"7a923030-8eaa-449b-bd5d-7f51580c93b2"],[{"index":{"value":2622},"size":{"value":15}},"b86464ac-7a34-4462-8abc-9b35cee1e868"],[{"index":{"value":2622},"size":{"value":21}},"79631d50-5b04-47f5-99c4-20066c152d12"],[{"index":{"value":2659},"size":{"value":12}},"bcbf5c80-6890-4b6a-9eeb-1de1e8c3f783"],[{"index":{"value":2683},"size":{"value":14}},"abfbdf47-48c8-4b7c-8118-ded0a11d1c79"],[{"index":{"value":2709},"size":{"value":34}},"85425b86-82e3-4bde-8eb0-1361141cf70c"],[{"index":{"value":2755},"size":{"value":54}},"963f8ab4-4a9e-456a-9d09-be4a8f8631c5"],[{"index":{"value":2755},"size":{"value":61}},"5cb772d8-1b91-4760-afcb-4664a1d0dca6"],[{"index":{"value":2830},"size":{"value":12}},"e00d80e1-6427-4495-95a8-93cd66ba6f91"],[{"index":{"value":2830},"size":{"value":18}},"b6723c57-6d2f-4d6c-b03f-718bb560929f"],[{"index":{"value":2830},"size":{"value":25}},"d401784b-a1a2-442c-bcbf-a2b762de3de6"],[{"index":{"value":2868},"size":{"value":10}},"e5d08387-1210-4c5a-b089-201c081af872"],[{"index":{"value":2868},"size":{"value":95}},"2202c98d-e875-46b9-ad39-30f5094de42d"],[{"index":{"value":2868},"size":{"value":104}},"bb30449f-a1b3-416d-9f60-c8cc3eba9821"],[{"index":{"value":2984},"size":{"value":20}},"75e09e67-aa74-4014-bb8a-03a3f0709f0b"],[{"index":{"value":2984},"size":{"value":44}},"f5e632d8-1a61-489d-97c9-5ebb95263914"],[{"index":{"value":3041},"size":{"value":9}},"a727a40d-2c8a-43b2-ac3e-cf457a78a459"],[{"index":{"value":3041},"size":{"value":20}},"84280763-4759-493c-9b42-ab9729ebc26e"],[{"index":{"value":3041},"size":{"value":30}},"0843a6ef-96da-42a5-a24e-314977cd4094"],[{"index":{"value":3083},"size":{"value":12}},"49a58e16-6d89-4010-a295-3147ca8eb92b"],[{"index":{"value":3083},"size":{"value":17}},"c4486b91-9176-4c7a-bd8d-f05727b02709"],[{"index":{"value":3083},"size":{"value":31}},"fe6a3001-133a-40a8-882a-e38d76ff97e4"],[{"index":{"value":3126},"size":{"value":9}},"3a9e6c33-8f6b-48f0-b35a-03cbe0431cfc"],[{"index":{"value":3126},"size":{"value":38}},"e8d88265-a726-41f5-99b7-bbae3c20e1cd"],[{"index":{"value":3176},"size":{"value":12}},"a7d6f9ea-06ec-4fe0-b49f-d86bfde03dc3"],[{"index":{"value":3176},"size":{"value":17}},"0feb317c-a5b3-460f-a7a0-7e7db14cf209"],[{"index":{"value":3176},"size":{"value":30}},"ca1d3e1b-8a23-4972-8001-ab37bee8138e"],[{"index":{"value":3218},"size":{"value":19}},"617c3ea8-a497-4c8a-9a3d-9a3460985a5a"],[{"index":{"value":3218},"size":{"value":26}},"39cf7410-9ec2-4be7-8627-37238b6fee2e"],[{"index":{"value":3257},"size":{"value":17}},"a880074a-364b-49eb-a07e-2ac3391c44b9"],[{"index":{"value":3289},"size":{"value":9}},"0150c2f9-30cc-410c-88eb-a8cc1300f246"],[{"index":{"value":3311},"size":{"value":22}},"ce68ee55-755d-4ecd-bb70-e183972b8554"],[{"index":{"value":3346},"size":{"value":8}},"1ada1827-18cc-4ad5-ae22-812e424f0b82"],[{"index":{"value":3346},"size":{"value":14}},"867f3c15-c63e-4229-accf-f6468ea749d5"],[{"index":{"value":3346},"size":{"value":27}},"694c2559-c7ab-41fe-befd-fb49e370eb7f"],[{"index":{"value":3386},"size":{"value":8}},"a9b8aa6f-5189-4102-b51f-41b879161a5f"],[{"index":{"value":3386},"size":{"value":15}},"8cd756ae-8646-4cd1-93b5-089bfba358f3"],[{"index":{"value":3414},"size":{"value":8}},"7f6b864c-30ea-4e5e-9f71-38204ead6f39"],[{"index":{"value":3414},"size":{"value":21}},"d99dc7ac-4c76-47c5-98c2-d358182ae178"],[{"index":{"value":3448},"size":{"value":9}},"71ab355b-5b17-4663-8946-a46e19f04992"],[{"index":{"value":3448},"size":{"value":15}},"e632a18e-0766-4056-b00d-9fa32b78c17d"],[{"index":{"value":3448},"size":{"value":86}},"e2ba7711-0afb-4cf9-87cf-bbbf3e218116"],[{"index":{"value":3547},"size":{"value":9}},"79e774be-c575-414b-a311-3f1b3cc50e49"],[{"index":{"value":3547},"size":{"value":15}},"98c3b41a-4055-43ca-9bd7-3591bf97cc84"],[{"index":{"value":3547},"size":{"value":23}},"4455c720-e3bd-4568-8c0c-85d6f911d21b"],[{"index":{"value":3583},"size":{"value":9}},"e6549849-8286-447f-b033-9621e89387bb"],[{"index":{"value":3583},"size":{"value":78}},"fc79d89a-7195-4779-8e74-7fba098c5dd6"],[{"index":{"value":3583},"size":{"value":86}},"35e4457c-5468-426e-afd8-37f44c8e5f7a"],[{"index":{"value":3682},"size":{"value":15}},"29a6ce32-06dd-485e-92d2-c0df93f62339"],[{"index":{"value":3682},"size":{"value":39}},"2048edef-d321-4ec9-af3f-e31ebf96bcbc"]]
+{"ide":{"node":{"d4e886e3-80a8-4534-afa6-fe9cce880877":{"position":{"vector":[-16,88]}},"365ff6e6-749b-4ab1-bb34-2e3b44a0917a":{"position":{"vector":[-16,16]}},"49a26a62-31f6-40b4-9a3a-deed6eac1f18":{"position":{"vector":[-16,-56]}},"01c90b19-8e2a-4c5b-8934-e41ca736593e":{"position":{"vector":[-16,-128]}},"df541ae5-3899-4927-949d-6f5e02f418f3":{"position":{"vector":[-545,17]}},"66348e67-d18e-4f8d-8ea2-f939dfc57396":{"position":{"vector":[-524,63]}},"090f1037-913c-44a1-9c02-8b97c3dd516f":{"position":{"vector":[-315,63]}},"a3c2a53c-d734-4542-aee6-ae683909a548":{"position":{"vector":[-199,17]}},"b6d7a44e-7158-4704-9189-541e58674566":{"position":{"vector":[-636,-55]}},"04d6bb16-dfad-4696-9263-20fb0af6e893":{"position":{"vector":[-687,-110]},"visualization":{"show":true,"height":201.99993896484375}},"88c35128-f47c-433c-8271-eac142998a43":{"position":{"vector":[-350,-92]},"visualization":{"show":false,"width":786.375,"height":208.4000244140625}},"239f661a-26f4-4b19-9f58-d116fe8b792c":{"position":{"vector":[-280,-134]},"visualization":{"show":true,"height":431.60003662109375}},"91293fae-616b-4aaa-b53e-b696d80b5994":{"position":{"vector":[431,-92]},"visualization":{"show":false,"width":352.800048828125,"height":457.20001220703125}},"d5274b94-522b-4efd-bf0e-967747d82607":{"position":{"vector":[431,-134]},"visualization":{"show":true,"width":329.4188232421875,"height":298.79998779296875}},"91e459b2-ac3a-446a-88cf-592596790904":{"position":{"vector":[231,-296]}},"7a923030-8eaa-449b-bd5d-7f51580c93b2":{"position":{"vector":[431,-486]}},"79631d50-5b04-47f5-99c4-20066c152d12":{"position":{"vector":[431,-529]},"visualization":{"show":true}},"b86464ac-7a34-4462-8abc-9b35cee1e868":{"position":{"vector":[225,-668]}},"bcbf5c80-6890-4b6a-9eeb-1de1e8c3f783":{"position":{"vector":[797,-162]},"visualization":{"show":true}},"abfbdf47-48c8-4b7c-8118-ded0a11d1c79":{"position":{"vector":[-1151,-347]},"visualization":{"show":false,"width":480,"height":293.20001220703125}},"85425b86-82e3-4bde-8eb0-1361141cf70c":{"position":{"vector":[-1151,-384]},"visualization":{"show":false,"height":337.20001220703125}},"5cb772d8-1b91-4760-afcb-4664a1d0dca6":{"position":{"vector":[-1151,-419]}},"963f8ab4-4a9e-456a-9d09-be4a8f8631c5":{"position":{"vector":[-1201,-419]},"visualization":{"show":true}},"d401784b-a1a2-442c-bcbf-a2b762de3de6":{"position":{"vector":[-1151,-456]},"visualization":{"show":false,"height":376.39996337890625}},"b6723c57-6d2f-4d6c-b03f-718bb560929f":{"position":{"vector":[-1117,-529]}},"e00d80e1-6427-4495-95a8-93cd66ba6f91":{"position":{"vector":[-1117,-529]}},"bb30449f-a1b3-416d-9f60-c8cc3eba9821":{"position":{"vector":[-1151,-491]}},"2202c98d-e875-46b9-ad39-30f5094de42d":{"position":{"vector":[-1173,-558]}},"e5d08387-1210-4c5a-b089-201c081af872":{"position":{"vector":[-1174,-558]}},"f5e632d8-1a61-489d-97c9-5ebb95263914":{"position":{"vector":[-1151,-528]},"visualization":{"show":false,"width":478.80316162109375,"height":510}},"75e09e67-aa74-4014-bb8a-03a3f0709f0b":{"position":{"vector":[-1151,-563]}},"0843a6ef-96da-42a5-a24e-314977cd4094":{"position":{"vector":[-1151,-565]},"visualization":{"show":true,"width":481.0093994140625,"height":509.2000427246094}},"84280763-4759-493c-9b42-ab9729ebc26e":{"position":{"vector":[-1109,-616]}},"a727a40d-2c8a-43b2-ac3e-cf457a78a459":{"position":{"vector":[-1109,-616]}},"fe6a3001-133a-40a8-882a-e38d76ff97e4":{"position":{"vector":[-636,-563]},"visualization":{"show":false,"width":497.1187744140625,"height":326}},"c4486b91-9176-4c7a-bd8d-f05727b02709":{"position":{"vector":[-613,-591]}},"49a58e16-6d89-4010-a295-3147ca8eb92b":{"position":{"vector":[-614,-590]}},"e8d88265-a726-41f5-99b7-bbae3c20e1cd":{"position":{"vector":[-618,-603]},"visualization":{"show":true,"width":620.0030517578125,"height":307.6000061035156}},"3a9e6c33-8f6b-48f0-b35a-03cbe0431cfc":{"position":{"vector":[-475,-628]}},"ca1d3e1b-8a23-4972-8001-ab37bee8138e":{"position":{"vector":[-1151,-1121]},"visualization":{"show":false,"width":583.95947265625,"height":382}},"0feb317c-a5b3-460f-a7a0-7e7db14cf209":{"position":{"vector":[-494,-1064]}},"a7d6f9ea-06ec-4fe0-b49f-d86bfde03dc3":{"position":{"vector":[-494,-1064]}},"39cf7410-9ec2-4be7-8627-37238b6fee2e":{"position":{"vector":[-1151,-1165]},"visualization":{"show":false,"width":634.5062255859375,"height":318}},"617c3ea8-a497-4c8a-9a3d-9a3460985a5a":{"position":{"vector":[-509,-1052]}},"a880074a-364b-49eb-a07e-2ac3391c44b9":{"position":{"vector":[-870,-1193]},"visualization":{"show":true,"width":248.79998779296875,"height":121.20001220703125}},"0150c2f9-30cc-410c-88eb-a8cc1300f246":{"position":{"vector":[-562,-955]}},"ce68ee55-755d-4ecd-bb70-e183972b8554":{"position":{"vector":[136,-805]}},"694c2559-c7ab-41fe-befd-fb49e370eb7f":{"position":{"vector":[33,-901]},"visualization":{"show":false,"width":664.7469482421875,"height":366.8000183105469}},"867f3c15-c63e-4229-accf-f6468ea749d5":{"position":{"vector":[-526,-1260]}},"1ada1827-18cc-4ad5-ae22-812e424f0b82":{"position":{"vector":[-526,-1260]}},"8cd756ae-8646-4cd1-93b5-089bfba358f3":{"position":{"vector":[323,-992]}},"a9b8aa6f-5189-4102-b51f-41b879161a5f":{"position":{"vector":[-473,-1237]}},"d99dc7ac-4c76-47c5-98c2-d358182ae178":{"position":{"vector":[64,-992]}},"7f6b864c-30ea-4e5e-9f71-38204ead6f39":{"position":{"vector":[-223,-1259]}},"e2ba7711-0afb-4cf9-87cf-bbbf3e218116":{"position":{"vector":[54,-1038]},"visualization":{"show":false,"width":422.85308837890625,"height":150}},"e632a18e-0766-4056-b00d-9fa32b78c17d":{"position":{"vector":[-413,-1341]}},"71ab355b-5b17-4663-8946-a46e19f04992":{"position":{"vector":[-413,-1341]}},"4455c720-e3bd-4568-8c0c-85d6f911d21b":{"position":{"vector":[-16,-1074]}},"98c3b41a-4055-43ca-9bd7-3591bf97cc84":{"position":{"vector":[-550,-1401]}},"79e774be-c575-414b-a311-3f1b3cc50e49":{"position":{"vector":[-550,-1401]}},"35e4457c-5468-426e-afd8-37f44c8e5f7a":{"position":{"vector":[-16,-1121]}},"fc79d89a-7195-4779-8e74-7fba098c5dd6":{"position":{"vector":[-594,-1386]}},"e6549849-8286-447f-b033-9621e89387bb":{"position":{"vector":[-562,-1386]}},"2048edef-d321-4ec9-af3f-e31ebf96bcbc":{"position":{"vector":[-58,-1164]},"visualization":{"show":true,"width":488.8489583333333}},"29a6ce32-06dd-485e-92d2-c0df93f62339":{"position":{"vector":[-511,-1481]}}},"widget":{},"snapshot":"eJyVVm1v2zYQ/u5fcVOx2l5tIpKdpC0mY21TDB3QdGiKboBjCIxE2UwoUSOp2MmvH46kXhw7xZYPgcV77rkXPndSrmQBV4aWGVUZeU81A15UUhmgQgzyPes3eiN+YL6ght78kODdX1fPG3+Xci1Y8q7iz2OuSrnNBb3bi+F/tqCPO1pUgukDw3euayr4IzVclo1VyJQKcsm2fyp5y1JzPhjoLa2Avr3gKQKpegAOtxAPAAAohxgoWTMD3B3ctge37oDwUjNlgKONgH+6BcoHg1QWFU0NZFzfvf3OUiOVJ15LoGkKguUmqaQGxdcb98vZ8Y/nnX0R9yBmw0rrzoRmLdy70DS16fUYYxiSofP67RvlIvlAhXg+hWl4SPyEvHX66T9xvwp76Rzlxr+vdWl4wQjVtoWjg2CukPH/cu7iulTHcNSdpmkSQQxODEfbctTvoOYkOlr1NNxztw+85IZTkWC4GDr9EZyC5N7JZYTaIQWtki03m4SXGdsBny5gN13Akk9gt3INKdnWM63lHvWJlR8RrFybjc/jhNRVYmTfAgQKWjU02LvB4MUL+MpMrUqrObRBrhhLdCWNhhHNDVNQyIznPLVjNgZaZi1W5jnTBnKp7JFmVKUblsGNkOkdGSiG02hYn1PzR4Z+mplmBO8pF7iKPCLuwUnOBaaAD9NF2+ERPtvbHyLfEKcHf4zh5cu+0cUZwq8+omskynw/JuE6YUVlHpzOl10CE++52lf1DdPGAnBZPOHSuIZkGY/0dAF6L5ExEMi50qYlsi725mVtEqQ9Wv+IkEtpko//1FR0wbtBwUvNuWBJ09kOtJdA66BYQXnJy7XFJLqiKTv0cs2d2t72t9Zx7xhOfP8Oq5o8TXF1uCYQ4Xv6x1Xy5QbXtxuVinKlYbkMMJFgcjT+agLLwHEHB9Hgla1htdoLeCTPdtkbVsRNQofJt5s/6mtbyW2z3t27gNzUXGRg/zM1XbRjichuLHMpsj4PTdPpAviup3gltxA7N2qA7zoDHjdzhttgpOS2d3vj3kGjwk7GLjFCq4qVGSiiWSrLrCMnTq0DbLevzLCdCSGGIJrNZuFsFkbhPJyHs3B+EgUtAldtEEaz+ak7K2XGTnEJUkOJYjSD4d9vr68v33+5vqYyjebX12+mvKxqQ8zO6xR5ZhA7X2IUL+yx25uYgk2FpBuqaGqY0m0kNHoYblb4VBq2ZopUVHnNISry3OHB9sXVi1ewHPEc+A5+hqgnb74jGb+HyCrYvnImkK5a2ibliOSCmgTjV9NFo4icCwGVbzRUpFsH6DOHGJpvCsvVq7hJd350KQQkGPfAs7YD0dHqeGYV9gt3l03Lh65nM4Ip1IYBIVd14V9ltoNN12devI1z1NZsZGJwGTYWTAQBRLGSFixJpaiLUsMy4FkwATfRqwY9d+gZUawSuFRGz7w1l8uABBO4lGbDy/VqNYblkGdDR2QTCB3VnKi6xFXhivFT0Tb8DAuycIJrYkTIFcevzeTjrnIdpgWD4VfPgQwyh2ayCPlMzcZ61TcGVdi5OMx4PIZmKzVFnvpmnRHFCnnf68nROG1zwhNX0ilJqTawbOZ5BYR4hTfQM4cMTxqtYHPA6cX3rIG+cdAz995atvk7hwumU1ZmvFyP2zzOnyH/pJ9yv3bI88NCu7tiO+Nv/TWK51Yn0m7+npi9/Q3B/dd2I+xmJfI0Ht5CosYR79b5BJdsC1/2LyT0Ig0jXK49heDZfM/WeXeIU4+Yk0deeT53NfgBwB/ZdOGf/fYfuadX7pOFgJGNrAkcjh4SnrVJNJWcQvBBsjzvimiu5eyHSubZvnA/18LwSjx0CEvrlZtuWHrXhfD3GZ4Tul4rtsZ3jr/TeOnny7oMV4N/AWKskYI="}}

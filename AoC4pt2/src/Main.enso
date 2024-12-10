@@ -1,0 +1,34 @@
+from Standard.Base import all
+from Standard.Table import all
+from Standard.Database import all
+from Standard.AWS import all
+from Standard.Google_Api import all
+from Standard.Snowflake import all
+import Standard.Examples
+import Standard.Visualization
+
+sample a x y =
+    p = [[x, y], [x-1, y-1], [x+1, y+1], [x-1,y+1], [x+1,y-1]]
+    p.map (c-> a.at c.first . at c.second) . join
+
+main =
+    file1 = Data.read 'X:\\NBO\\aoc24\\4-test.txt'
+    any4 = Data.read 'X:\\NBO\\aoc24\\4-input.txt'
+    vector1 = any4.lines
+    node1 = vector1.map .characters
+    ## width
+    w = node1.length
+    ## height
+    h = node1.first.length
+    node2 = 1.up_to w-1 . map x-> 1.up_to h-1 . map y-> sample node1 x y
+    vector2 = node2.flatten
+    any1 = regex "A(MS|SM)(MS|SM)"
+    node3 = vector2.map s-> any1.matches s
+    vector3 = node3.filter ..Is_True
+    integer1 = vector3.length
+
+
+
+#### METADATA ####
+[[{"index":{"value":399},"size":{"value":38}},"fcf199e6-d2b1-44b7-be92-a47545d6a593"],[{"index":{"value":449},"size":{"value":9}},"183ef164-529a-42fa-bc22-439b607b9b41"],[{"index":{"value":449},"size":{"value":39}},"e70d6935-5d75-4834-a290-eb2070c9ffd1"],[{"index":{"value":503},"size":{"value":10}},"7189b936-ceea-447f-85cc-7330a94888f2"],[{"index":{"value":526},"size":{"value":23}},"46700799-97ce-4c71-8a24-88eefb5562c8"],[{"index":{"value":571},"size":{"value":12}},"e1d06049-4a5b-4780-b51c-888f04c13ef5"],[{"index":{"value":606},"size":{"value":18}},"65ac8eff-d834-4382-a964-7d6c0fb8ff82"],[{"index":{"value":637},"size":{"value":60}},"a7822c4a-a14a-4159-8e29-24ae620d33d8"],[{"index":{"value":712},"size":{"value":13}},"7ffdfe7f-1919-4e71-9437-58c84a4324c8"],[{"index":{"value":737},"size":{"value":23}},"b1c7200b-fa19-4fc1-b75b-79e239371261"],[{"index":{"value":773},"size":{"value":30}},"2eb147f7-333d-402b-ae0c-f51a6381ed9c"],[{"index":{"value":818},"size":{"value":12}},"76dc87ab-064f-4f0c-b8d5-0670117630e4"],[{"index":{"value":818},"size":{"value":22}},"f1dc4bf5-1802-4198-a0de-8b4c07ddadfd"],[{"index":{"value":856},"size":{"value":14}},"c942dcf8-bf2d-4fe5-8d96-7ffcfb8417ae"]]
+{"ide":{"node":{"fcf199e6-d2b1-44b7-be92-a47545d6a593":{"position":{"vector":[-877,358]},"visualization":{"show":false,"width":1027.671875,"height":193}},"e70d6935-5d75-4834-a290-eb2070c9ffd1":{"position":{"vector":[-492,389]}},"183ef164-529a-42fa-bc22-439b607b9b41":{"position":{"vector":[-458,296]}},"7189b936-ceea-447f-85cc-7330a94888f2":{"position":{"vector":[-831,258]}},"46700799-97ce-4c71-8a24-88eefb5562c8":{"position":{"vector":[-831,224]},"visualization":{"show":false,"width":948.3532104492188,"height":318.0000305175781}},"e1d06049-4a5b-4780-b51c-888f04c13ef5":{"position":{"vector":[-1161,152]},"visualization":{"show":true}},"65ac8eff-d834-4382-a964-7d6c0fb8ff82":{"position":{"vector":[-597,152]},"visualization":{"show":true}},"a7822c4a-a14a-4159-8e29-24ae620d33d8":{"position":{"vector":[-1391,-70]}},"7ffdfe7f-1919-4e71-9437-58c84a4324c8":{"position":{"vector":[-1391,-112]},"visualization":{"show":false,"width":498.4000244140625,"height":299.5999755859375}},"b1c7200b-fa19-4fc1-b75b-79e239371261":{"position":{"vector":[-1712,-142]}},"2eb147f7-333d-402b-ae0c-f51a6381ed9c":{"position":{"vector":[-1391,-210]}},"f1dc4bf5-1802-4198-a0de-8b4c07ddadfd":{"position":{"vector":[-1391,-260]}},"76dc87ab-064f-4f0c-b8d5-0670117630e4":{"position":{"vector":[-1391,-260]}},"c942dcf8-bf2d-4fe5-8d96-7ffcfb8417ae":{"position":{"vector":[-1360,-314]},"visualization":{"show":true}}},"widget":{},"snapshot":"eJyFUcFu2zAMvfsriObQFokFOMlpgAOk2DDs0O3gYisQFwFr07Y2WTIkZrGHffwgxfFSDO1OIh/f09OjKmtayBh1ibYUd+gIZNsZy4BKRdWL6QM+qzfG75Hx+c0Ltt+y14cfjakV7bedfJ2TaXOsFP544TGWE+lDj22nyP0z+CrdAZX8hSyNjiIXaIDQwwBpBADQQQq7Xb+A4WkBuz5OFjDESajnvp4nZ/xczpOFZzyd5KLFDm6KeAMokKEQlbSOQUBoHBVGl7cg4LuROopalHo0rqSiBFLwOxSWsITrx3d5/vnuS56jKZbrPF/HTI4F93wdJKiH9f8UUneHC8lPKthY7+PFQklNLgy0KYP9SAgxRNGgxYLJnjizGRxlyU1ojpCeREKRrkdwNoOGZN1w6JqJEpZwSfTwElJIxKHbs4FjnIAAb9rHmwltJnSINzD+1umlPQwXgZaj01JUCplJn/fjI1mqqYer7c199ju7vx2Pq+kdqyn2MsR2/vP04HfARUMO3IXTanRaiUoqJgtCfHL7B3ugQJKaqSb7d5Orc+o/698RWA=="}}
